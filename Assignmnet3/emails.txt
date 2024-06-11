@@ -1,0 +1,331 @@
+--------------------------------------------------
+Return-Path: <jcs232565@iitd.ac.in>
+X-Original-To: jcs232565@iitd.ac.in
+Delivered-To: jcs232565@iitd.ac.in
+Received: from localhost (localhost [127.0.0.1])
+	by smtpstore.iitd.ac.in (Postfix) with ESMTP id 7F2D52220D8
+	for <jcs232565@iitd.ac.in>; Sun, 31 Mar 2024 22:57:34 +0530 (IST)
+Authentication-Results: smtpstore.iitd.ac.in (amavisd-new);
+	dkim=pass (1024-bit key) header.d=iitd.ac.in
+Received: from smtpstore.iitd.ac.in ([127.0.0.1])
+	by localhost (smtpstore.iitd.ac.in [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id jdxj7-z286ad for <jcs232565@iitd.ac.in>;
+	Sun, 31 Mar 2024 22:57:34 +0530 (IST)
+Received: from smtp3.iitd.ac.in (smtp3.iitd.ac.in [10.7.172.182])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtpstore.iitd.ac.in (Postfix) with ESMTPS id 68A6F22089B
+	for <jcs232565@iitd.ac.in>; Sun, 31 Mar 2024 22:57:34 +0530 (IST)
+Received: from localhost (localhost [127.0.0.1])
+	by smtp3.iitd.ac.in (Postfix) with ESMTP id 573ED4002A
+	for <jcs232565@iitd.ac.in>; Sun, 31 Mar 2024 22:57:34 +0530 (IST)
+Authentication-Results: smtp3.iitd.ac.in (amavisd-new);
+	dkim=pass (1024-bit key) reason="pass (just generated, assumed good)"
+	header.d=iitd.ac.in
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=iitd.ac.in; h=
+	date:date:subject:subject:from:from:mime-version:content-type
+	:content-type:received:received; s=iitd; t=1711906054; x=
+	1713720455; bh=9QiWeAk8EwOwNHne5GnJpJw+e7Ux2t8SLh/IXnx1IFk=; b=E
+	C/xqadiJwzLnCTgwgNNFti9YzBwOPPZi3RozIKQeGsh+oNV/FGB8Z1IVYrYef/Yr
+	MnsCe2KVyzEEbC3KQaEiixgsXJqZ61wgsmjFy/eUCkzwYxepIZdjMrv1ePfy1ZtL
+	J87AgRSmnxds3LNdP2zOF4+ojbnNZ5exRWjUl5EVUE=
+X-Virus-Scanned: Debian amavisd-new at smtp3.iitd.ac.in
+Received: from smtp3.iitd.ac.in ([127.0.0.1])
+	by localhost (smtp3.iitd.ac.in [127.0.0.1]) (amavisd-new, port 10026)
+	with ESMTP id KAauff5DypWq for <jcs232565@iitd.ac.in>;
+	Sun, 31 Mar 2024 22:57:34 +0530 (IST)
+Received: from 1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa (unknown [10.184.37.101])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (3072 bits) server-digest SHA256)
+	(No client certificate requested)
+	(Authenticated sender: jcs232565@iitd.ac.in)
+	by smtp3.iitd.ac.in (Postfix) with ESMTPSA id 4084740019
+	for <jcs232565@iitd.ac.in>; Sun, 31 Mar 2024 22:57:34 +0530 (IST)
+Content-Type: multipart/mixed; boundary="===============6330575114228473715=="
+MIME-Version: 1.0
+From: jcs232565@iitd.ac.in
+To: jcs232565@iitd.ac.in
+Subject: OTP for Fund Transfer
+Date: Sun, 31 Mar 2024 22:57:33 +0530
+Message-Id: <20240331172734.573ED4002A@smtp3.iitd.ac.in>
+--------------------------------------------------
+From: jcs232565@iitd.ac.in
+Subject: OTP for Fund Transfer
+Body:
+The OTP for transferring Rs 1,00,000 to your friend’s account is 256345.
+
+--------------------------------------------------
+
+--------------------------------------------------
+Return-Path: <anjalisingh181930@gmail.com>
+X-Original-To: jcs232565@csia.iitd.ac.in
+Delivered-To: jcs232565@csia.iitd.ac.in
+Received: from localhost (localhost [127.0.0.1])
+	by smtpstore.iitd.ac.in (Postfix) with ESMTP id D2F9022220C
+	for <jcs232565@csia.iitd.ac.in>; Sun, 31 Mar 2024 22:59:28 +0530 (IST)
+Authentication-Results: smtpstore.iitd.ac.in (amavisd-new);
+	dkim=fail (2048-bit key) reason="fail (body has been altered)"
+	header.d=gmail.com
+Received: from smtpstore.iitd.ac.in ([127.0.0.1])
+	by localhost (smtpstore.iitd.ac.in [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id KriPmpbI6LtJ for <jcs232565@csia.iitd.ac.in>;
+	Sun, 31 Mar 2024 22:59:28 +0530 (IST)
+Received: from smtp3.iitd.ac.in (smtp3.iitd.ac.in [10.7.172.182])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtpstore.iitd.ac.in (Postfix) with ESMTPS id BBAFB22089B
+	for <jcs232565@csia.iitd.ac.in>; Sun, 31 Mar 2024 22:59:28 +0530 (IST)
+Received: from localhost (localhost [127.0.0.1])
+	by smtp3.iitd.ac.in (Postfix) with ESMTP id AA0904002A
+	for <jcs232565@csia.iitd.ac.in>; Sun, 31 Mar 2024 22:59:28 +0530 (IST)
+Authentication-Results: smtp3.iitd.ac.in (amavisd-new);
+	dkim=fail (2048-bit key) reason="fail (body has been altered)"
+	header.d=gmail.com
+Received: from smtp3.iitd.ac.in ([127.0.0.1])
+	by localhost (smtp3.iitd.ac.in [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id DYxGRHUvFbQc for <jcs232565@csia.iitd.ac.in>;
+	Sun, 31 Mar 2024 22:59:28 +0530 (IST)
+Received: from esai2.iitd.ac.in (esai2.iitd.ac.in [10.7.172.222])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp3.iitd.ac.in (Postfix) with ESMTPS id 9101740019
+	for <jcs232565@csia.iitd.ac.in>; Sun, 31 Mar 2024 22:59:28 +0530 (IST)
+Received-SPF: None (smtp2.iitd.ac.in: no sender authenticity
+  information available from domain of
+  anjalisingh181930@gmail.com) identity=pra;
+  client-ip=209.85.222.44; receiver=smtp2.iitd.ac.in;
+  envelope-from="anjalisingh181930@gmail.com";
+  x-sender="anjalisingh181930@gmail.com";
+  x-conformance=sidf_compatible
+Received-SPF: Pass (smtp2.iitd.ac.in: domain of
+  anjalisingh181930@gmail.com designates 209.85.222.44 as
+  permitted sender) identity=mailfrom; client-ip=209.85.222.44;
+  receiver=smtp2.iitd.ac.in;
+  envelope-from="anjalisingh181930@gmail.com";
+  x-sender="anjalisingh181930@gmail.com";
+  x-conformance=sidf_compatible; x-record-type="v=spf1";
+  x-record-text="v=spf1 ip4:35.190.247.0/24 ip4:64.233.160.0/19
+  ip4:66.102.0.0/20 ip4:66.249.80.0/20 ip4:72.14.192.0/18
+  ip4:74.125.0.0/16 ip4:108.177.8.0/21 ip4:173.194.0.0/16
+  ip4:209.85.128.0/17 ip4:216.58.192.0/19 ip4:216.239.32.0/19
+  ~all"
+Received-SPF: None (smtp2.iitd.ac.in: no sender authenticity
+  information available from domain of
+  postmaster@mail-ua1-f44.google.com) identity=helo;
+  client-ip=209.85.222.44; receiver=smtp2.iitd.ac.in;
+  envelope-from="anjalisingh181930@gmail.com";
+  x-sender="postmaster@mail-ua1-f44.google.com";
+  x-conformance=sidf_compatible
+Authentication-Results: smtp2.iitd.ac.in; spf=None smtp.pra=anjalisingh181930@gmail.com; spf=Pass smtp.mailfrom=anjalisingh181930@gmail.com; spf=None smtp.helo=postmaster@mail-ua1-f44.google.com; dkim=pass (signature verified) header.i=@gmail.com; dmarc=pass (p=none dis=none) d=gmail.com
+IronPort-SDR: 66099d77_RcQPBGaCDcnACWYhJm3bnGxSeH7ykUUH9cp/V0AHcaBQ/9F
+ QjzXV8vAe51GOMfJFVMe+pQv7C32XcUkxGKvXRw==
+X-IPAS-Result: =?us-ascii?q?A0G+DgDLnAlmhizeVdFaDhABPAwCC4MagQOBUTMEC0iEV?=
+ =?us-ascii?q?oEjkRyKbjACBIEzQYVUA4EmA4JJhmWBLD4PAQEBAQEBAQEBCUQEAQEDBI0IA?=
+ =?us-ascii?q?h4HAQRHAQIBAgEBAQEBAwIDAQEBAQEBCAEBAQQBAQECAQECBAUBAQIQAQEBI?=
+ =?us-ascii?q?RkHDhAnhW0NgmCBJmECBQM7AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBA?=
+ =?us-ascii?q?QEBAQEBAQEBBQIsdREdARseAxIIAQIFIhUCIwERAQUBLAEqgl6CKwEDMQOga?=
+ =?us-ascii?q?4IhgQVCizuBFQUCFoEBggsGBQMCAa9SChkoDWwDX38CBxSGFCVbgkcBgVICA?=
+ =?us-ascii?q?oJ9hGeBIYIogUqHL4EGDoMOgmgEghKDN5JYgl6DUQmHSyYBBwcXAwcHBwQFB?=
+ =?us-ascii?q?BwGBQMCAkMJBwEPEgMEAwQGAQIFAwUTAgIEEAUCAQEVARIIAQsECgIHAQIVA?=
+ =?us-ascii?q?wEBAQgBAwQPAQIDAwEBAQEFAgIBAgkCAgMFBAQBDAMDAgkBBAEDBAELAgEDB?=
+ =?us-ascii?q?AICAgIBAgIDAgIGAgMCBAEDAwMDAQIBAwIKAwMCCAMDBQECAwICAgQCAgICA?=
+ =?us-ascii?q?gMGBAUCAQIDAgYGAwEDAgUCAwUBAQQIBgEDAgMCBwsCAQYCAgEEAhMBBAEBA?=
+ =?us-ascii?q?gMFAgIGAwMDAgMCAgYFCAMCAQECAQQDAQIBARcCAgwHAwEFAgIDAwcBBAEBA?=
+ =?us-ascii?q?wcBAwMCAg4CCgUFAgcDAhwCAgIPAQIBAgEDCwMHAgIBAhACAgECCgcDAgUBB?=
+ =?us-ascii?q?QEEAgECBgEIAgISBQYGAQEEAgsDAgEBAgICCwIFBQMDBAIPBwUCAQIEAgEBA?=
+ =?us-ascii?q?xAIBwEPBgIDBAICBQIBAgMKBBICEAEEAgICBQEFAgEBAgMFBgIBAwgCAgYDB?=
+ =?us-ascii?q?wECBQcFBwEHBgIMAgkBAQECAQIDAwIDBAIBAwMEEQEMAxsCAQIECwEBBQQCB?=
+ =?us-ascii?q?gIDCAMDGgMIAwIBAgMBBQECAQQFBAcDAgMDAwMDAwMIBAEKAwMDAQQBBwMKA?=
+ =?us-ascii?q?QIPCwYBAggFCBAEAQQCAgQHAgMEAwMCAgIDAwsHAQMDAwIBAwECBQIPBgcCJ?=
+ =?us-ascii?q?AMCAgIHAwQFAgICCAIDAgQDAg0DAgMBBQMMBQEGBAICBAoDAgEFAxcJBAIJE?=
+ =?us-ascii?q?QYCAg0CDAYFAQQBAgIBAwMDAgQCAgMBAgICAgIDAQIGBAIBBwIFAwUCAgMCA?=
+ =?us-ascii?q?QEBAQICBAMBDgcCAwUFAgEFCQMDAgIEAwECAgMCAgIDAQQFFAMEAgUKAwgCA?=
+ =?us-ascii?q?gcCDgMBBQIBAQICAgIBAQICAwgCEgMBAgECAwICCAICBwEBAgoHAwEBBAQEA?=
+ =?us-ascii?q?wYCAgUEDQMIBQEBAgIEAQoCCQ8FAgIDAwIDAQEBAgoDCQEFAgIBAwICBAQHA?=
+ =?us-ascii?q?QYDBQMDBAQDAgMDAgwBBQEFAQUBBQQCBgEUAg0HAgILBQYDBg4DCwQEAQICB?=
+ =?us-ascii?q?QQGDAkEAgICBgECEQMBAgEHAQMDAgoBBAECCwgBBQgCDAQCAQQCAwYQAggFB?=
+ =?us-ascii?q?gUCAgEBAgICAQgGDwMGBwIDAgYDBQUDAwICAgcEBAIBAgICARMGBAQCAwIDB?=
+ =?us-ascii?q?AEFBAQDAhcIDQIFBwEJCwgMAQQGAgQCBAcDCAUFBAIDBAQRBwsDAgMEAgIGA?=
+ =?us-ascii?q?xECAwQCCgIEBAcCAwEEDQYEBAoCCwMHAQECBQMDCQcGAgMDBQQDBgIFAwMDA?=
+ =?us-ascii?q?gMCDQICAgEJAQEBAhQCAw4CBAIBAgUFCQMBAxMCAgMCBggCAgIHAwMEAgMGC?=
+ =?us-ascii?q?wECEAMCAgICBQMEAgIUAwkEAgQGAgQBBgMDAgQGBQoEAgIFAgEBAgoCAQ8KB?=
+ =?us-ascii?q?AMEAwUDBwkCBQUDAgQCAgcJAQECAgIDAwMDAgMCAgMDAgcDAwMHAwUDBAIDB?=
+ =?us-ascii?q?gUHAwUFAwICAhQBBgIFCgYDBwYLBQUHAgYCBAgDBQICAwMDAwIGCggDAwMCA?=
+ =?us-ascii?q?QYCAgMDAQIIAw8GAgIDBQYDAwMDBggDAwIGAwMCAwIDAgMDAQMCAwICAwICA?=
+ =?us-ascii?q?ggCAgMCBQQFAgIDBAIIGgICAgIDAwgDAwoEAgIEAQQCBAIEAgYDBAICAQcCB?=
+ =?us-ascii?q?QMCAwIHAgIEAgICAgMCAgYIAgIDAwMCAgIBCQIFAQEGAgQDAgMFAwkDBAUCA?=
+ =?us-ascii?q?wgBAQICBwcDAwQDAQIBBQQCAgYFAgMCAgQEBAUDAgMCBgYCAQMCCgYDBQMDA?=
+ =?us-ascii?q?wMCAwMCAwMCBQIIAgIEBAUEAgcEAgQDAwMBCgIGAwICBQEBAgIFAwIEBAcCA?=
+ =?us-ascii?q?gIHDwMCBwUCBQcCCAEGBQICAwIIAQICBgEGAgQBAgINAQECAgIDBAMDBwIEA?=
+ =?us-ascii?q?wIIAgMDEQEDAwkGBQQFBAMJBA8CBAEIAwEBBAgCBAMCDAICIQIFCwQEARIKC?=
+ =?us-ascii?q?AMBAQMBAQICAgICDgMCAwICAwoCAwIKAwYEAgIGAQEBBAYBBAIBAgkEDgkFC?=
+ =?us-ascii?q?AgBAwIBCgECEgUCDwIJAwMGBAIQBgoFAwIDBQECBRUDCAMCCQIEDAMNAgMDA?=
+ =?us-ascii?q?gYDBgIGAQYDBwsBAQkIBQMDAwIWAQICEAgGBg8HAgMDBAQPAxICBg4DAwIDA?=
+ =?us-ascii?q?gECAgIDBQQFAgcDAw0FAgIHAwIIBQMHCQQKAggFAQIGAwICAgIFDQEBAQECA?=
+ =?us-ascii?q?wIFAwcJCAgEBQQDAQEGBgwoAgIDBBADDAMGCwEFBQEDAgICDgMFAwIDBgYBE?=
+ =?us-ascii?q?AQBBQQJAgUHBgUCARQaCAYCDQIHAgICAwECAwECAUMdAgkDIw8DCwkIEz0BC?=
+ =?us-ascii?q?wcuBAQMKAEUFAcnByEKVhCsSwEBAaNvoCgNLQkBBgJfgWaBCBIKHw2BYYhEl?=
+ =?us-ascii?q?x4zg3IBpj2GNIwphgWochEjEoFpgVwzGiOBAW2BSU8DGQ+OOYNhjzSMHj4yO?=
+ =?us-ascii?q?wIHAQoBAQMJiSKBKh4BAQ?=
+IronPort-PHdr: A9a23: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
+ wIa7AAK7wUFxNYYlgXN74/BTZsKwDlT8aocbw==
+IronPort-Data: A9a23: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
+ vRAI5TzOahdFH1s5Q==
+IronPort-HdrOrdr: A9a23:4awPG6zml3Z5HubqPL6YKrPwIb1zdoMgy1knxilNoH1uA6ulfq
+ WV9sjzuiWE6wr5NEtBpTniAsi9qBHnhPxICOAqVN/IYOCMghrMEGgN1/qH/9QiIUHDHyxmuJ
+ uIv5IQNDQ4NzZHsfo=
+X-Talos-CUID: 9a23:DmvcCm9dH/MCOR3qis6Vv1IpQMsnbD7B8GfBO2+yLDlqYYK+FVDFrQ==
+X-Talos-MUID: 9a23:A3TFrAnJ8ueiC9b2/9EXdnptGZl2/56sIXkV0roIkPXHKRR0Bzi02WE=
+X-IronPort-Anti-Spam-Filtered: true
+X-IronPort-AV: E=Sophos;i="6.07,170,1708367400"; 
+   d="scan'208,217";a="19481705"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from mail-ua1-f44.google.com ([209.85.222.44])
+  by smtp2.iitd.ac.in with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Mar 2024 22:59:26 +0530
+Received: by mail-ua1-f44.google.com with SMTP id a1e0cc1a2514c-7e3555015a8so64592241.3
+        for <jcs232565@csia.iitd.ac.in>; Sun, 31 Mar 2024 10:29:26 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1711906163; x=1712510963; darn=csia.iitd.ac.in;
+        h=to:subject:message-id:date:from:mime-version:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=BPlTuFEEyUs/kHE94YQiuISCvvDHRUNMbyeoRO62oyw=;
+        b=djJqh3TWc6gMoDF2b9AM+qut7x2B7vFvUL/0mllSb+GvYeJ48kRfu8AsZYwk9OqGNj
+         OECmhp1O6uD/qtipi7Ip+aGNlm295nHgzPDCRtoFvsxxjEzHG9ZuN5fUe7VgojVXi/VQ
+         TwlfncfVjnYOUytZDuMVDeZ5oIjuqCL56m4iTPFX8gRdTGaCva/uxTeB7kjDqpNr8zYP
+         5zz3hUBJMk+azQJn+zYyxSIkTWiP3e4J4c613wx441Q6VuRLRP35CtiWZpll59ra41Bg
+         3boEOGlTD9qRnRI9HQ1p3Oo/96juFQPlHftHMLfs5gqxxSUmE+XfovuXvDDEKJSjKj8i
+         GX5g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1711906163; x=1712510963;
+        h=to:subject:message-id:date:from:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=BPlTuFEEyUs/kHE94YQiuISCvvDHRUNMbyeoRO62oyw=;
+        b=u8atdg0uM2I+PW6b0Bz3Goz72snmoVWgET29c6rpdsdZjIo4wQdec3V92sxGTRBSFn
+         JsTvEhWe2OP8Upfk1tw6Pm+/p7dSGeJl+sBD7yA+OqnKcDrz0dm2c6twD+i/1YhceTMk
+         r2bo/iQ1x7ThE1lESkIpsx1JF9JBHmF7nQ/bE1yilpCEqrSN4OVipz5s9Ypwfi2u6DV2
+         LSivHnqFeitIrrQaTNNQ5d1jdq8F3lRvKIZDoh0UNath1qB8YaeW1oEXdTrNf3MG3/WO
+         aFT9L8TuHlgKXVt99DX6Ar41qcepnPPk5CluWIOvt3EHeaDtZ6KQEBrPNMMvEdZQ05Cs
+         KDmg==
+X-Gm-Message-State: AOJu0YzEz/aSSXnntgaRTKIl9pfAwaQCw/yAyR1l24uPNZ/id6XXxUHp
+	0fevNizZFwCDumtLIFfKSsev/T2nloGVPr/FKXvRmxRykThW3LeoK0NR7QDS82RabGdqrgoHrA1
+	jhDRI+ffbN8IF6fRrrOmPG18OI6MBYkhRMLU=
+X-Google-Smtp-Source: AGHT+IFqo4kVMWcqldRjIKeL6/Z+9obgb4CFQ5+19Cqj82GpDtlaKHbxaQQpLikThbXIP8iTd0rngE3J6hYD8wjP+6E=
+X-Received: by 2002:a05:6102:4a8:b0:478:6d74:f31a with SMTP id
+ r8-20020a05610204a800b004786d74f31amr1474206vsa.15.1711906162780; Sun, 31 Mar
+ 2024 10:29:22 -0700 (PDT)
+MIME-Version: 1.0
+From: Anjali Singh <anjalisingh181930@gmail.com>
+Date: Sun, 31 Mar 2024 22:59:11 +0530
+Message-ID: <CA+HDsD4T78zU5Y3ycK4rQgj3Crvm=SW9zKmeZ4pac2m1q-vsDA@mail.gmail.com>
+Subject: OTP for Fund Transfer
+To: jcs232565@csia.iitd.ac.in
+Content-Type: multipart/alternative; boundary="000000000000b8b2200614f83629"
+--------------------------------------------------
+From: Anjali Singh <anjalisingh181930@gmail.com>
+Subject: OTP for Fund Transfer
+Body:
+The OTP for transferring Rs 1,00,000 to your friend’s account is 256345.
+CAUTION: This email originated from outside of IIT Delhi. Do not click links or open attachments unless you recognize the sender and know the content is safe.
+
+
+--------------------------------------------------
+
