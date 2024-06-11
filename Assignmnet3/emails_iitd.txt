@@ -1,0 +1,57 @@
+--------------------------------------------------
+Return-Path: <jcs232565@iitd.ac.in>
+X-Original-To: jcs232565@iitd.ac.in
+Delivered-To: jcs232565@iitd.ac.in
+Received: from localhost (localhost [127.0.0.1])
+	by smtpstore.iitd.ac.in (Postfix) with ESMTP id 9E48F2221FD
+	for <jcs232565@iitd.ac.in>; Sun, 31 Mar 2024 13:32:31 +0530 (IST)
+Authentication-Results: smtpstore.iitd.ac.in (amavisd-new);
+	dkim=pass (1024-bit key) header.d=iitd.ac.in
+Received: from smtpstore.iitd.ac.in ([127.0.0.1])
+	by localhost (smtpstore.iitd.ac.in [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id tNRlzOaj7kOE for <jcs232565@iitd.ac.in>;
+	Sun, 31 Mar 2024 13:32:31 +0530 (IST)
+Received: from smtp1.iitd.ac.in (smtp1.iitd.ac.in [10.7.172.183])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtpstore.iitd.ac.in (Postfix) with ESMTPS id 86D08220877
+	for <jcs232565@iitd.ac.in>; Sun, 31 Mar 2024 13:32:31 +0530 (IST)
+Received: from localhost (localhost [127.0.0.1])
+	by smtp1.iitd.ac.in (Postfix) with ESMTP id 746124016B
+	for <jcs232565@iitd.ac.in>; Sun, 31 Mar 2024 13:32:31 +0530 (IST)
+Authentication-Results: smtp1.iitd.ac.in (amavisd-new);
+	dkim=pass (1024-bit key) reason="pass (just generated, assumed good)"
+	header.d=iitd.ac.in
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=iitd.ac.in; h=
+	date:date:subject:subject:from:from:mime-version:content-type
+	:content-type:received:received; s=iitd; t=1711872151; x=
+	1713686552; bh=O9aS2Foc4OGi3trAtMaGqDE+ufBk9YcHykXWHqRjITc=; b=e
+	yV5a5EbvdZcm6xn8VV5iAD654dWWPxjaa3J8A5CjBsVDIcRXzhXwTfggmhIaTeMR
+	OLmNNN51bcFRbrr8/F7uHV4bS7RX6/ALajzzAoRaJb8V2fDfhGLmzI1NZl5OFu1B
+	EQ/cwqVCjESBxfA9r0I7sIQsnBxeY3WDvWlxi74T4I=
+X-Virus-Scanned: Debian amavisd-new at smtp1.iitd.ac.in
+Received: from smtp1.iitd.ac.in ([127.0.0.1])
+	by localhost (smtp1.iitd.ac.in [127.0.0.1]) (amavisd-new, port 10026)
+	with ESMTP id BVY4tqk-yORR for <jcs232565@iitd.ac.in>;
+	Sun, 31 Mar 2024 13:32:31 +0530 (IST)
+Received: from 1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa (unknown [10.184.37.101])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (3072 bits) server-digest SHA256)
+	(No client certificate requested)
+	(Authenticated sender: jcs232565@iitd.ac.in)
+	by smtp1.iitd.ac.in (Postfix) with ESMTPSA id 5F4AB400F7
+	for <jcs232565@iitd.ac.in>; Sun, 31 Mar 2024 13:32:31 +0530 (IST)
+Content-Type: multipart/mixed; boundary="===============2846180343173633691=="
+MIME-Version: 1.0
+From: jcs232565@iitd.ac.in
+To: jcs232565@iitd.ac.in
+Subject: OTP for Fund Transfer
+Date: Sun, 31 Mar 2024 13:32:31 +0530
+Message-Id: <20240331080231.746124016B@smtp1.iitd.ac.in>
+--------------------------------------------------
+From: jcs232565@iitd.ac.in
+Subject: OTP for Fund Transfer
+Body:
+The OTP for transferring Rs 1,00,000 to your friend’s account is 256345.
+
+--------------------------------------------------
